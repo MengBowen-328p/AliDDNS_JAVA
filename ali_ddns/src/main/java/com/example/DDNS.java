@@ -1,14 +1,12 @@
 package com.example;
-import com.aliyuncs.IAcsClient;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.ini4j.Profile;
 
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.alidns.model.v20150109.DescribeDomainRecordsRequest;
@@ -18,6 +16,7 @@ import com.aliyuncs.alidns.model.v20150109.UpdateDomainRecordResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
 import com.google.gson.Gson;
+import com.aliyuncs.IAcsClient;
 /**
  * Hello world!
  *
@@ -111,6 +110,30 @@ public class DDNS
         IAcsClient client = new DefaultAcsClient(profile);
         DDNS ddns = new DDNS();
         DescribeDomainRecordsRequest describeDomainRecordsRequest = new DescribeDomainRecordsRequest();
-        
+        describeDomainRecordsRequest.setDomainName("example.com");
+        describeDomainRecordsRequest.setRRKeyWord("demo");
+        describeDomainRecordsRequest.setType("A");
+        DescribeDomainRecordsResponse describeDomainRecordsResponse = ddns.describeDomainRecords(describeDomainRecordsRequest, client);
+        printLog("describeDomainRecords",describeDomainRecordsResponse);
+        List<DescribeDomainRecordsResponse.Record> domainRecords = describeDomainRecordsResponse.getDomainRecords();
+        if(domainRecords.size() != 0)
+        {
+            DescribeDomainRecordsResponse.Record record = domainRecords.get(0);
+            String recordID = record.getRecordId();
+            String recordsValue = record.getValue();
+            String currentHostIP = ddns.getCurrentHostIP();
+            System.out.println("-------------------------------当前主机公网IP为："+currentHostIP+"-------------------------------");
+            if(!currentHostIP.equals(recordsValue)){
+                UpdateDomainRecordRequest updateDomainRecordRequest = new UpdateDomainRecordRequest();
+                updateDomainRecordRequest.setRR("ddnstest");
+                updateDomainRecordRequest.setRecordId(recordID);
+                updateDomainRecordRequest.setValue(currentHostIP);
+                updateDomainRecordRequest.setType("A");
+                UpdateDomainRecordResponse updateDomainRecordResponse = ddns.updateDomainRecord(updateDomainRecordRequest, client);
+                printLog("updateDomainRecord",updateDomainRecordResponse);
+            }
+        }
+
     }
+
 }
