@@ -1,4 +1,4 @@
-package com.example;
+package ddns;
 
 import static org.junit.Assert.assertTrue;
 
